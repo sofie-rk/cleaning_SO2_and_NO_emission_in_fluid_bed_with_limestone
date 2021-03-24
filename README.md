@@ -1,1 +1,1 @@
-# cleaning_SO2_and_NO_emission_in_fluid_bed_with_limestone
+# Cleaning SO2 and NO emission in a fluid bed using limestone
