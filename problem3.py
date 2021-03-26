@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 
 from scipy.integrate import odeint
 
-# from values import T, p, R
-# from values import A1, A2, E1, E2, E1a, E2a
 
 from values import *
 
@@ -12,10 +10,9 @@ from values import *
 from utility_functions import *
 
 
-# FIXING VALUES
-y_NO_s = ppmv_to_molm3(200) # [mol/m^3]
-X_CaO = 1
-X_N = 2
+# FIXED VALUES
+X_CaO = 0.2
+X_N = 1.5/100
 
 
 def k(A, E, Ea, T):
@@ -33,7 +30,11 @@ def A_surf(X_CaO):
 
 def O2_conc(t):
 
-    return (0.21 - 0.19/t_bed*t)*p/(R*T)
+    if t>t_bed:
+        return 0.02 * p/(R*T)
+
+    else:
+        return (0.21 - 0.19/t_bed*t)*p/(R*T)
 
 
 def model(X, t):
@@ -45,11 +46,12 @@ def model(X, t):
     O2 = O2_conc(t)
 
     if t<=t_bed:
-        dNH3_dt = 0.6/t_bed*X_N - A*k_14*NH3*NO - A*k2*NH3*O2 - A*2/3*k3*NH3*NO - k_ox*NH3 - k_r*NH3*NO
+        dNH3_dt = 0.6/t_bed*X_N - A*k_14*NH3 - A*k2*NH3*O2 - A*2/3*k3*NH3*NO - k_ox*NH3 - k_r*NH3*NO
         dNO_dt = A*k2*NH3*O2 - A*k3*NH3*NO + k_ox*NH3 - k_r*NH3*NO
     else:
-        dNH3_dt = 0.6/t_bed*X_N - k_ox*NH3 - k_r*NH3*NO
+        dNH3_dt = -k_ox*NH3 - k_r*NH3*NO
         dNO_dt = k_ox*NH3 - k_r*NH3*NO
+
 
     return [dNH3_dt, dNO_dt]
 
@@ -60,7 +62,7 @@ def model(X, t):
 conc_initial = [0, 0] 
 
 # Time points
-n = 500
+n = 5000
 
 t = np.linspace(0, t_free+t_bed , n)
 
@@ -85,11 +87,11 @@ for i in range(1, n):
     conc_initial = X[1]
 
 
-#plt.plot(t, conc_to_ppmv(NH3_conc), label="NH3")
+plt.plot(t, conc_to_ppmv(NH3_conc), label="NH3")
 plt.plot(t, conc_to_ppmv(NO_conc), label="NO")
 plt.xlabel("Time t [s]")
 plt.ylabel("Concentration [ppmv]")
-#plt.plot([t_bed, t_bed], [0, 0.02], '--', color = "black")
+#plt.plot([t_bed, t_bed], [0, 300], '--', color = "black")
 plt.legend()
 plt.show()
 
