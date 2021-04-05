@@ -1,3 +1,5 @@
+### THIS ONE WE USED TO EVALUATE [NH3] and [NO] as a function of time
+
 import numpy as np 
 import matplotlib.pyplot as plt
 
