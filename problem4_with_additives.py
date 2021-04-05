@@ -41,7 +41,7 @@ print(outlet_concentrations(850+273, 2, 200))
 
 
     
-beta_list = [0, 1, 2, 3, 4]
+beta_list = [1, 2, 3, 4]
 
 
 fig1, (NO_ax1, NH3_ax1) = plt.subplots(1, 2)
@@ -103,20 +103,4 @@ NH3_ax2.set(xlabel=xlabel_str2, ylabel="NH3 concentration [ppmv]")
 fig2.suptitle("Keeping beta = 2")
 plt.legend()
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
