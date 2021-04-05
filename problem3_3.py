@@ -12,7 +12,6 @@ from values import *
 from utility_functions import *
 
 
-
 def k(A, E, Ea, T):
     R = 8.314   # [J/K mol] 
     return A * np.exp(-(E - Ea)/(R*T))
@@ -22,19 +21,16 @@ k_r = k(A2, E2, E2a, T)
 
 
 def A_surf(X_CaO):
-    return S_0 * (1-X_CaO) *C_CaO * (1-e)/e
+    return S_0 * (1-X_CaO) * C_CaO * (1-e)/e
 
 
 def O2_conc(t):
 
-    return (0.21 - 0.19/t_bed*t)*p/(R*T)
+    if t>t_bed:
+        return 0.02 * p/(R*T)
 
-
-def dNH3_dt(t, conc_NH3, conc_NO):
-    return 0
-
-def dNO_dt(t, conc_NH3, conc_NO):
-    return 0
+    else:
+        return (0.21 - 0.19/t_bed*t)*p/(R*T)
 
 
 def model(X, t, X_N, X_CaO):
@@ -46,23 +42,23 @@ def model(X, t, X_N, X_CaO):
     O2 = O2_conc(t)
 
     if t<=t_bed:
-        dNH3_dt = 0.6/t_bed*X_N - A*k_14*NH3*NO - A*k2*NH3*O2 - A*2/3*k3*NH3*NO - k_ox*NH3 - k_r*NH3*NO
+        dNH3_dt = 0.6/t_bed*X_N - A*k_14*NH3 - A*k2*NH3*O2 - A*2/3*k3*NH3*NO - k_ox*NH3 - k_r*NH3*NO
         dNO_dt = A*k2*NH3*O2 - A*k3*NH3*NO + k_ox*NH3 - k_r*NH3*NO
     else:
-        dNH3_dt = 0.6/t_bed*X_N - k_ox*NH3 - k_r*NH3*NO
+        dNH3_dt = -k_ox*NH3 - k_r*NH3*NO
         dNO_dt = k_ox*NH3 - k_r*NH3*NO
+
 
     return [dNH3_dt, dNO_dt]
 
 
 def NH3_out(X_N, X_CaO):
 
-
     # INITIAL CONDITIONS
     conc_initial = [0, 0] 
 
     # Time points
-    n = 3000
+    n = 4000
 
     t = np.linspace(0, t_free+t_bed , n)
 
@@ -86,25 +82,21 @@ def NH3_out(X_N, X_CaO):
         # New init conditions
         conc_initial = X[1]
 
-    return NO_conc[-1]
-
-
+    return NO_conc[-1] # [mol/m3]
 
 X_N = [1/100, 1.5/100, 2/100]
 
 def X_N_label(X_N):
-    return "$X_N$ = " + str(X_N)
+    return "$X_N$ = " + str(X_N*100) + " wt%"
 
 for i in range(len(X_N)):
-
-    number_X_CaO_points = 21
+    # x-axis
+    number_X_CaO_points = 31
     X_CaO_list = np.linspace(0, 1, number_X_CaO_points)
     NO_conc_plot = np.zeros(number_X_CaO_points)
 
     for j in range(number_X_CaO_points):
         NO_conc_plot[j] = conc_to_ppmv(NH3_out(X_N[i], X_CaO_list[j]))
-    
-    print(NO_conc_plot)
 
     plt.plot(X_CaO_list, NO_conc_plot, label=X_N_label(X_N[i]))
 
@@ -113,8 +105,6 @@ plt.legend()
 plt.xlabel("$X_{CaO}$ [-]")
 plt.ylabel("NO emmision [ppmv]")
 plt.show()
-
-
 
 
 
