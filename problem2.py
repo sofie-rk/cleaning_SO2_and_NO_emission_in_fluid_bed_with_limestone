@@ -1,5 +1,6 @@
 from numpy import log, exp # natural logarithm
 import numpy as np
+import timeit
 
 import matplotlib.pyplot as plt
 
@@ -8,6 +9,19 @@ from scipy.integrate import quad
 from values import rho_over_De
 
 from utility_functions import ppmv_to_molm3
+
+
+
+### VALUES SPECIFIC FOR THIS EXERCISE ###
+T1 = 850 + 273  # [K] temperature
+
+def C_SO2_label(C_SO2):
+    return "$C(SO_2)_0 =$ " + str(C_SO2) + " ppmv" 
+
+def alpha_label(alpha):
+    return r"$\alpha$ = " + str(alpha)
+
+desulph_str = "Desulphurization degree"
 
 
 def integrand(u, t_mean, tau):
@@ -21,12 +35,12 @@ def find_X_CaO(alpha, C_SO2_0, t_mean, Rp):
     # Default value for conversion in case numerical method does not converge
     X_CaO = 1/alpha
 
-    step_size = 0.0005
+    step_size = 0.0001
 
     X_CaO_iter = 1/alpha - step_size
     error = 1
     
-    while X_CaO_iter > 0 and error>0.01:
+    while X_CaO_iter > 0 and error>0.0005:
 
         X_SO2 = alpha * X_CaO_iter
 
@@ -42,60 +56,94 @@ def find_X_CaO(alpha, C_SO2_0, t_mean, Rp):
     
         X_CaO_iter -= step_size
 
-    return X_CaO
+    if X_CaO_iter <= 0:
+        return 1/alpha
+    else:
+        return X_CaO
+
+
     
 def desulphurization_degree(alpha, X):
     return alpha*X
 
-### WITH d_p = 3mm
-def plot_desulpu_degree_vs_C_SO2_0(Rp):
+def generating_plots(Rp):
+
+    fig, (plot1ax, plot2ax) = plt.subplots(1, 2)
+
+    print("\n***Plotting desulpurization degree versus C_SO2_0***\n")
+
+    start_time_alpha = timeit.default_timer()
 
     # x-axis : concentration of C_SO2_0
     # y-axis: desulphurization degree
     # keeping t_mean fixed
     # varying alpha
 
-    print("\n***Plotting desulpurization degree versus C_SO2_0***\n")
-
+    alpha_list = [1, 2, 3, 4]
     t_mean_fixed = 4
-    number_of_points = 200
 
-    # x-axis is C_SO2_0
-    C_SO2_0 = np.linspace(200, 1400, number_of_points)
+    for alpha in alpha_list:
 
-    # Empty desulphurization arrays
-    D1 = np.zeros(number_of_points)
-    D2 = np.zeros(number_of_points)
-    D3 = np.zeros(number_of_points)
-    D4 = np.zeros(number_of_points)
+        conc_points = 50
 
-    for i in range(number_of_points):
+        C_SO2_0 = np.linspace(200, 1400, conc_points)
 
-        # alpha = 1
-        X1 = find_X_CaO(1, ppmv_to_molm3(C_SO2_0[i]), t_mean_fixed, Rp)
-        D1[i] = desulphurization_degree(1, X1)
+        D = np.zeros(conc_points)
 
-        # alpha = 2
-        X2 = find_X_CaO(2, ppmv_to_molm3(C_SO2_0[i]), t_mean_fixed, Rp)
-        D2[i] = desulphurization_degree(2, X2)
+        for i in range(conc_points):
+            X_CaO = find_X_CaO(alpha, ppmv_to_molm3(C_SO2_0[i], T1), t_mean_fixed, Rp)
+            D[i] = desulphurization_degree(alpha, X_CaO)
 
-        # alpha = 3
-        X3 = find_X_CaO(3, ppmv_to_molm3(C_SO2_0[i]), t_mean_fixed, Rp)
-        D3[i] = desulphurization_degree(3, X3)
+        plot1ax.plot(C_SO2_0, D, label=alpha_label(alpha))
 
-        # alpha = 4
-        X4 = find_X_CaO(4, ppmv_to_molm3(C_SO2_0[i]), t_mean_fixed, Rp)
-        D4[i] = desulphurization_degree(4, X4)
+        print("Done with alpha = ", alpha, " after t = ", timeit.default_timer() - start_time_alpha, " seconds")
 
-    plt.plot(C_SO2_0, D1, label=r"$\alpha = 1$") 
-    plt.plot(C_SO2_0, D2, label=r"$\alpha = 2$") 
-    #plt.plot(C_SO2_0, D3, label="alpha = 3")
-    #plt.plot(C_SO2_0, D4, label="alpha = 4")
-    plt.xlabel("Inlet concentration of SO2 $C(SO_2,0) [ppmv]$")
-    plt.ylabel("Desulpurization degree")
-    plt.legend()
+
+
+    print("\n***Plotting desulpurization degree versus t_mean***\n")
+
+    start_time_t = timeit.default_timer()
+
+    alpha_fixed = 2
+    conc_list = [200, 500, 1000, 1400]
+
+    for C_SO2_0 in conc_list:
+
+        t_points = 50
+
+        t = np.linspace(0.001, 8, t_points)
+
+        D = np.zeros(t_points)
+
+        for i in range(t_points):
+            X_CaO = find_X_CaO(alpha_fixed, ppmv_to_molm3(C_SO2_0, T1), t[i], Rp)
+            D[i] = desulphurization_degree(alpha_fixed, X_CaO)
+        
+        plot2ax.plot(t, D, label=C_SO2_label(C_SO2_0))
+        
+        print("Done with C_SO2 = ", C_SO2_0, " after t = ", timeit.default_timer() - start_time_t)
+
+
+
+
+    #plot1ax.plot([200, 1400], [1, 1], '--', color="black")
+    
+
+    plot1ax.set(xlabel="Inlet concentration of SO2 $C(SO_2)_0$ ppmv", ylabel=desulph_str)
+    plot1ax.set_title("Keeping " + r"$\overline{t}_{mean}$ = " + str(t_mean_fixed))
+
+    plot2ax.set(xlabel="Mean residence time " + r"$\overline{t}$ [h]", ylabel=desulph_str)
+    plot2ax.set_title("Keeping " + r"$\alpha = $" + str(alpha_fixed))
+
+    plot1ax.legend()
+    plot2ax.legend()
+
+    fig.suptitle("With diameter = " + str(Rp*2*10**3) + " [mm]")
+
     plt.show()
 
-plot_desulpu_degree_vs_C_SO2_0(3*10**(-3)/2)
+
+
+generating_plots(3*10**(-3)/2)
 
 
