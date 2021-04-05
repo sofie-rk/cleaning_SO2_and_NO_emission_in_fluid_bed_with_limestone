@@ -46,7 +46,7 @@ def model(X, t, X_N, X_CaO):
     O2 = O2_conc(t)
 
     if t<=t_bed:
-        dNH3_dt = 0.6/t_bed*X_N - A*k_14*NH3*NO - A*k2*NH3*O2 - A*2/3*k3*NH3*NO - k_ox*NH3 - k_r*NH3*NO
+        dNH3_dt = 0.6/t_bed*X_N - A*k_14*NH3 - A*k2*NH3*O2 - A*2/3*k3*NH3*NO - k_ox*NH3 - k_r*NH3*NO
         dNO_dt = A*k2*NH3*O2 - A*k3*NH3*NO + k_ox*NH3 - k_r*NH3*NO
     else:
         dNH3_dt = 0.6/t_bed*X_N - k_ox*NH3 - k_r*NH3*NO

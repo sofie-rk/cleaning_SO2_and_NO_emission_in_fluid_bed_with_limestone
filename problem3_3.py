@@ -12,6 +12,9 @@ from values import *
 from utility_functions import *
 
 
+T_3 = 850 + 273 # [K]
+
+
 def k(A, E, Ea, T):
     R = 8.314   # [J/K mol] 
     return A * np.exp(-(E - Ea)/(R*T))
@@ -26,11 +29,13 @@ def A_surf(X_CaO):
 
 def O2_conc(t):
 
+    # [O2] in mol/m3
+
     if t>t_bed:
-        return 0.02 * p/(R*T)
+        return 0.02 * p/(R*T_3)
 
     else:
-        return (0.21 - 0.19/t_bed*t)*p/(R*T)
+        return (0.21 - (0.19/t_bed) *t) * p/(R*T_3)
 
 
 def model(X, t, X_N, X_CaO):
@@ -58,7 +63,7 @@ def NH3_out(X_N, X_CaO):
     conc_initial = [0, 0] 
 
     # Time points
-    n = 4000
+    n = 3000
 
     t = np.linspace(0, t_free+t_bed , n)
 
@@ -96,7 +101,8 @@ for i in range(len(X_N)):
     NO_conc_plot = np.zeros(number_X_CaO_points)
 
     for j in range(number_X_CaO_points):
-        NO_conc_plot[j] = conc_to_ppmv(NH3_out(X_N[i], X_CaO_list[j]))
+        NO_conc_plot[j] = conc_to_ppmv(NH3_out(X_N[i], X_CaO_list[j]), T_3)
+        #NO_conc_plot[j] = NH3_out(X_N[i], X_CaO_list[j])
 
     plt.plot(X_CaO_list, NO_conc_plot, label=X_N_label(X_N[i]))
 
