@@ -1,4 +1,4 @@
-from utility_functions import *
+from utility_functions import ppmv_to_molm3
 
 # Reactor conditions
 T = 850 + 273   # [K]
