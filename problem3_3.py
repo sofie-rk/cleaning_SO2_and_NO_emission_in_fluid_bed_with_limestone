@@ -67,7 +67,7 @@ def NH3_out(X_N, X_CaO):
 
     t = np.linspace(0, t_free+t_bed , n)
 
-    # Store sol
+    # Store solution
     NH3_conc = np.empty_like(t)
     NO_conc = np.empty_like(t)
 
@@ -109,7 +109,7 @@ for i in range(len(X_N)):
 
 plt.legend()
 plt.xlabel("$X_{CaO}$ [-]")
-plt.ylabel("NO emmision [ppmv]")
+plt.ylabel("NO emission [ppmv]")
 plt.show()
 
 
