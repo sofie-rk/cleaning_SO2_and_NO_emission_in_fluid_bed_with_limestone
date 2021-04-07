@@ -8,15 +8,29 @@ from numpy import exp
 import numpy as np
 import matplotlib.pyplot as plt
 
-xlabel_str1 = "Temperature [$^o$C]"
-xlabel_str2 = r"$y_{NO,in}$ [ppmv]"
+xlabel_str = "Beta"
 
-def outlet_concentrations(T, beta, y_NO_in):
+T_4_2 = 800 +273    # [K] Temperature
+y_NO_in = 500       # [ppmv] inlet concentration of NO
+
+def outlet_concentrations(beta, y_C2H6):
+
+    if y_C2H6 == 105:
+        E1a = 21.6 * 10**3
+        E2a = 14.1 * 10**3
+
+    elif y_C2H6 == 211:
+        E1a = 30.0 * 10**3
+        E2a = 18.6 * 10**3
+
+    else:
+        E1a = 0
+        E2a = 0
 
     # Temperature dependent variables
-    Vm = molar_volume(T)
-    k_ox = A1 * exp(-E1/(R*T))
-    k_r = A2 * exp(-E2/(R*T)) / (Vm * 10**6)
+    Vm = molar_volume(T_4_2)
+    k_ox = A1 * exp(-(E1-E1a)/(R*T_4_2))
+    k_r = A2 * exp(-(E2-E2a)/(R*T_4_2)) / (Vm * 10**6)
 
     a = t_cyclone*k_r + 2*k_r*k_ox
     b = k_r*t_cyclone*y_NO_in - beta*y_NO_in*t_cyclone*k_r + t_cyclone*k_ox + 1
@@ -35,72 +49,35 @@ def outlet_concentrations(T, beta, y_NO_in):
 
     return y_NO_out, y_NH3_out 
 
-print(outlet_concentrations(850+273, 2, 200))
-    
 
 
-
-    
-beta_list = [1, 2, 3, 4]
+y_C2H6_list = [0, 105, 211]
 
 
 fig1, (NO_ax1, NH3_ax1) = plt.subplots(1, 2)
 
-for beta in beta_list:
+for y_C2H6 in y_C2H6_list:
 
-    y_NO_in = 200
+    beta_points = 20
 
-    T_points = 51
-    T_list = np.linspace(750, 1200, T_points)
+    beta_list = np.linspace(1, 4, beta_points)
 
-    NO_conc_list = np.zeros(T_points)
-    NH3_conc_list = np.zeros(T_points)
+    NO_conc_list = np.zeros(beta_points)
+    NH3_conc_list = np.zeros(beta_points)
 
-    for j in range(T_points):
-        NO_conc_list[j], NH3_conc_list[j] = outlet_concentrations(T_list[j] + 273, beta, y_NO_in)
+    for j in range(beta_points):
+        NO_conc_list[j], NH3_conc_list[j] = outlet_concentrations(beta_list[j], y_C2H6)
 
+    NO_ax1.plot(beta_list, NO_conc_list, label="y_C2H6 = " + str(y_C2H6))
+    NH3_ax1.plot(beta_list, NH3_conc_list, label="y_C2H6 = " + str(y_C2H6))
 
-    
-    NO_ax1.plot(T_list, NO_conc_list, label="Beta = " + str(beta))
-    NH3_ax1.plot(T_list, NH3_conc_list, label="Beta = " + str(beta))
-
-NO_ax1.set(xlabel=xlabel_str1, ylabel="NO concentration [ppmv]")
-NH3_ax1.set(xlabel=xlabel_str1, ylabel="NH3 concentration [ppmv]")
+NO_ax1.set(xlabel=xlabel_str, ylabel="NO concentration [ppmv]")
+NH3_ax1.set(xlabel=xlabel_str, ylabel="NH3 concentration [ppmv]")
 NO_ax1.set_title("NO concentration")
 NH3_ax1.set_title("NH3 concentration")
-fig1.suptitle("Keeping $y_{NO, in}$ = 200 ppmv")
-plt.legend()
+NO_ax1.legend()
+NH3_ax1.legend()
 plt.show()
 
 
-
-
-fig2, (NO_ax2, NH3_ax2) = plt.subplots(1, 2)
-
-temperatures = [750, 900, 1000, 1200]
-
-for T in temperatures:
-
-    beta = 2
-
-    y_NO_in_points = 51
-    y_NO_in_list = np.linspace(25, 400, y_NO_in_points)
-
-    NO_conc_list = np.zeros(y_NO_in_points)
-    NH3_conc_list = np.zeros(y_NO_in_points)
-
-    for j in range(y_NO_in_points):
-        NO_conc_list[j], NH3_conc_list[j] = outlet_concentrations(T+273, beta, y_NO_in_list[j])
-
-
-    NO_ax2.plot(y_NO_in_list, NO_conc_list, label="T = " + str(T) + " [C]")
-    NH3_ax2.plot(y_NO_in_list, NH3_conc_list, label="T = " + str(T) + " [C]")
-
-NO_ax2.set_title("NO concentration")
-NH3_ax2.set_title("NH3 concentration")
-NO_ax2.set(xlabel=xlabel_str2, ylabel="NO concentration [ppmv]")
-NH3_ax2.set(xlabel=xlabel_str2, ylabel="NH3 concentration [ppmv]")
-fig2.suptitle("Keeping beta = 2")
-plt.legend()
-plt.show()
 
