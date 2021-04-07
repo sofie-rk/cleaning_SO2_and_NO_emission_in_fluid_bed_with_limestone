@@ -18,7 +18,7 @@ def outlet_concentrations(T, beta, y_NO_in):
     k_ox = A1 * exp(-E1/(R*T))
     k_r = A2 * exp(-E2/(R*T)) / (Vm * 10**6)
 
-    a = t_cyclone*k_r + 2*k_r*k_ox
+    a = t_cyclone*k_r + 2*k_r*k_ox*t_cyclone**2
     b = k_r*t_cyclone*y_NO_in - beta*y_NO_in*t_cyclone*k_r + t_cyclone*k_ox + 1
     c = -beta*y_NO_in
 
@@ -83,7 +83,7 @@ plt.show()
 
 fig2, (NO_ax2, NH3_ax2) = plt.subplots(1, 2)
 
-temperatures = [750, 800, 1000, 1200] # [C]
+temperatures = [750, 900, 1000, 1200] # [C]
 
 for T in temperatures:
 
