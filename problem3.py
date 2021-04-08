@@ -1,20 +1,15 @@
-### THIS ONE WE USED TO EVALUATE [NH3] and [NO] as a function of time
-
 import numpy as np 
 import matplotlib.pyplot as plt
 
 from scipy.integrate import odeint
 
-
 from values import *
 
 
-from utility_functions import *
+from utility_functions import conc_to_ppmv
 
 
-# FIXED VALUES
-X_CaO = 0.2
-X_N = 1.5/100
+T_3 = 850 + 273 # [K]
 
 
 def k(A, E, Ea, T):
@@ -25,21 +20,22 @@ k_ox = k(A1, E1, E1a, T)
 k_r = k(A2, E2, E2a, T)
 
 
-
 def A_surf(X_CaO):
     return S_0 * (1-X_CaO) * C_CaO * (1-e)/e
 
 
 def O2_conc(t):
 
+    # [O2] in mol/m3
+
     if t>t_bed:
-        return 0.02 * p/(R*T)
+        return 0.02 * p/(R*T_3)
 
     else:
-        return (0.21 - 0.19/t_bed*t)*p/(R*T)
+        return (0.21 - (0.19/t_bed) *t) * p/(R*T_3)
 
 
-def model(X, t):
+def model(X, t, X_N, X_CaO):
     NH3 = X[0]
     NO = X[1]
 
@@ -58,48 +54,62 @@ def model(X, t):
     return [dNH3_dt, dNO_dt]
 
 
+def NH3_out(X_N, X_CaO):
+
+    # INITIAL CONDITIONS
+    conc_initial = [0, 0] 
+
+    # Time points
+    n = 3000
+
+    t = np.linspace(0, t_free+t_bed , n)
+
+    # Store solution
+    NH3_conc = np.empty_like(t)
+    NO_conc = np.empty_like(t)
+
+    # Add initial condition
+    NH3_conc[0] = conc_initial[0]
+    NO_conc[0] = conc_initial[1]
+
+    ### SOLVING ###
+    for i in range(1, n):
+        tspan = [t[i-1], t[i]] 
+
+        X = odeint(model, conc_initial, tspan, args=(X_N, X_CaO))
+
+        NH3_conc[i] = X[1][0]
+        NO_conc[i] = X[1][1]
+
+        # New init conditions
+        conc_initial = X[1]
+
+    return NO_conc[-1] # [mol/m3]
+
+X_N = [1/100, 1.5/100, 2/100]
+
+def X_N_label(X_N):
+    return "$X_N$ = " + str(X_N*100) + " wt%"
+
+for i in range(len(X_N)):
+    # x-axis
+    number_X_CaO_points = 31
+    X_CaO_list = np.linspace(0, 1, number_X_CaO_points)
+    NO_conc_plot = np.zeros(number_X_CaO_points)
+
+    for j in range(number_X_CaO_points):
+        NO_conc_plot[j] = conc_to_ppmv(NH3_out(X_N[i], X_CaO_list[j]), T_3)
+
+    plt.plot(X_CaO_list, NO_conc_plot, label=X_N_label(X_N[i]))
 
 
-# INITIAL CONDITIONS
-conc_initial = [0, 0] 
-
-# Time points
-n = 5000
-
-t = np.linspace(0, t_free+t_bed , n)
-
-# Store sol
-NH3_conc = np.empty_like(t)
-NO_conc = np.empty_like(t)
-
-# Add initial condition
-NH3_conc[0] = conc_initial[0]
-NO_conc[0] = conc_initial[1]
-
-### SOLVING ###
-for i in range(1, n):
-    tspan = [t[i-1], t[i]] 
-
-    X = odeint(model, conc_initial, tspan)
-
-    NH3_conc[i] = X[1][0]
-    NO_conc[i] = X[1][1]
-
-    # New init conditions
-    conc_initial = X[1]
-
-
-plt.plot(t, conc_to_ppmv(NH3_conc), label="NH3")
-plt.plot(t, conc_to_ppmv(NO_conc), label="NO")
-plt.xlabel("Time t [s]")
-plt.ylabel("Concentration [ppmv]")
-#plt.plot([t_bed, t_bed], [0, 300], '--', color = "black")
 plt.legend()
+plt.xlabel(r"$\overline{X}_{CaO}$ [-] ")
+plt.ylabel("NO concentration [ppmv]")
 plt.show()
 
-print(conc_to_ppmv(NO_conc[-1]))
-# x-axis: X_CaO
-# will vary X_N
+
+
 
 
 
