@@ -23,11 +23,12 @@ def alpha_label(alpha):
 
 def dp_title(Rp):
     if len(Rp) == 1:
-        return "$d_p$ = " + str(Rp[0]*2*10**3) + " mm"
+        return "$d_p$ = " + str(round(Rp[0]*2*10**3)) + " mm"
     else:
         return "$d_p$ mixed" 
 
 desulph_str = "Desulphurization degree"
+
 
 
 def integrand(u, t_mean, tau):
@@ -159,7 +160,7 @@ fig1, axes1 = plt.subplots(1, len(Rp_list))
 fig2, axes2 = plt.subplots(1, len(Rp_list))
 
 for i in range(len(Rp_list)):
-    #D_vs_y_SO2_plot(Rp_list[i], axes1[i])
+    D_vs_y_SO2_plot(Rp_list[i], axes1[i])
     D_vs_t_mean(Rp_list[i], axes2[i])
 
 
