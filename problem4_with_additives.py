@@ -63,6 +63,7 @@ for beta in beta_list:
     NH3_ax1.plot(y_C2H6_list, NH3_conc_list, label=r"$\beta$ = " + str(beta))
 
 NO_ax1.set(xlabel=xlabel_str, ylabel="NO concentration [ppmv]")
+NO_ax1.plot([0, 200], [500, 500], "--", color="black", label="$y_{NO, in}$")
 NH3_ax1.set(xlabel=xlabel_str, ylabel="NH3 concentration [ppmv]")
 NO_ax1.set_title("NO concentration")
 NH3_ax1.set_title("NH3 concentration")
