@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 
 xlabel_str1 = "Temperature [$^o$C]"
 xlabel_str2 = r"$y_{NO,in}$ [ppmv]"
+y_NO_in_str = "$y_{NO,in}$"
 
 def outlet_concentrations(T, beta, y_NO_in):
 
@@ -45,10 +46,7 @@ print(outlet_concentrations(850+273, 2, 200))
     
 
 
-
-    
 beta_list = [1, 2, 3, 4]
-
 
 fig1, (NO_ax1, NH3_ax1) = plt.subplots(1, 2)
 
@@ -70,6 +68,7 @@ for beta in beta_list:
 
 
 NO_ax1.set(xlabel=xlabel_str1, ylabel="NO concentration [ppmv]")
+NO_ax1.plot([750, 1200], [200, 200], "--", color="black", label=y_NO_in_str)
 NH3_ax1.set(xlabel=xlabel_str1, ylabel="NH3 concentration [ppmv]")
 NO_ax1.set_title("NO concentration")
 NH3_ax1.set_title("NH3 concentration")
@@ -106,7 +105,8 @@ NO_ax2.set_title("NO concentration")
 NH3_ax2.set_title("NH3 concentration")
 NO_ax2.set(xlabel=xlabel_str2, ylabel="NO concentration [ppmv]")
 NH3_ax2.set(xlabel=xlabel_str2, ylabel="NH3 concentration [ppmv]")
-fig2.suptitle("Keeping beta = 2")
+NO_ax2.plot([25, 400], [25, 400], "--", color="black", label=y_NO_in_str)
+fig2.suptitle(r"Keeping $\beta$ = 2")
 NO_ax2.legend()
 NH3_ax2.legend()
 plt.show()
